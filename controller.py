@@ -286,9 +286,43 @@ class Xbox360Controller:
             # File closed in main thread
             return
         except OSError as e:
-            print("Controller disconnected, attempting reconnect")
-            time.sleep(.2)
-            return self.get_event();
+            self._ff_id = -1
+            self._event_file.close()
+            result = False
+
+            while (not [self.index for index in range(len(glob("/dev/input/js*")))]):
+                time.sleep(1)
+                print("Controller Disconnected")
+                continue
+            try:
+                self._dev_file = open(self._get_dev_file(), "rb")
+            except FileNotFoundError:
+                raise Exception(
+                    "controller device with index {index} "
+                    "was not found!".format(index=self.index)
+                )
+            self._event_file = open(self._get_event_file(), "wb")
+            self.get_event()
+            #print("Controller disconnected, attempting reconnect")
+            #time.sleep(.2)
+            #result = false
+            #try:
+            #    self._dev_file = open(self._get_dev_file(), "rb")
+            #except FileNotFoundError:
+            #    raise
+            #    "controller device with index {index} "
+            #    "was not found!".format(index=self.index)
+            #    result = False
+
+            #self._event_file = open(self._get_event_file(), "wb")
+
+            #self._led_file = None
+            #try:
+            #    self._led_file = open(self._get_led_file(), "w")
+            #except PermissionError:
+            #    warnings.warn(LED_PERMISSION_WARNING, UserWarning)
+            #except FileNotFoundError:
+            #    warnings.warn(LED_SUPPORT_WARNING, UserWarning)
         else:
             if buf:
                 time_, value, type_, number = struct.unpack("IhBB", buf)
